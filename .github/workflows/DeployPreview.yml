@@ -7,12 +7,12 @@ env:
 on: 
   push:
     branches:
-      - main
+      - dev
 
 jobs:
   DeployProduction:
     runs-on: ubuntu-latest
-
+    
     services:
       app:
         image: node:18
@@ -36,10 +36,10 @@ jobs:
         run: docker-compose run --rm --user root app npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
-        run: docker-compose run --rm --user root app npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        run: docker-compose run --rm --user root app npx vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project
-        run: docker-compose run --rm --user root app npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        run: docker-compose run --rm --user root app npx vercel build  --token=${{ secrets.VERCEL_TOKEN }}
         
       - name: Deploy Project to Vercel
-        run: docker-compose run --rm --user root app npx vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        run: docker-compose run --rm --user root app npx vercel deploy  --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
