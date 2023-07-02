@@ -1,0 +1,45 @@
+name: Deploy
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+on: 
+  push:
+    branches:
+      - main
+
+jobs:
+  DeployProduction:
+    runs-on: ubuntu-latest
+
+    services:
+      app:
+        image: node:18
+        ports:
+          - 3000
+        options: --name app --init --entrypoint npm
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and start container
+        run: |
+          docker-compose up -d
+          docker-compose ps
+
+      - name: Install dependencies
+        run: docker-compose run --rm --user root app npm ci
+  
+      - name: Install Vercel CLI
+        run: docker-compose run --rm --user root app npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        run: docker-compose run --rm --user root app npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project
+        run: docker-compose run --rm --user root app npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        
+      - name: Deploy Project to Vercel
+        run: docker-compose run --rm --user root app npx vercel deploy --prod --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
